@@ -64,7 +64,6 @@ sizeTournament = 6; % tournament size should not be greater than size of populat
         % calculate the distance of each population (per row), distance of each city.
         % to do parent selection with tournament way
 
-%         fprintf('============== iteration %i ===================\n', iter);
         % remove duplicate path if exist
         population = unique(population, 'rows', 'stable'); 
         distAndPopPair=containers.Map('KeyType','int32','ValueType','any');
@@ -88,32 +87,18 @@ sizeTournament = 6; % tournament size should not be greater than size of populat
             % when storing new key-value pair, it will be sorted ascending
             % automatically
         end
-%         disp('distance of initial population');
-%         disp(distancePop);
-%         
+  
 % 3. Calculate the fitness value of each population
-%     distancePop = sort(distancePop);
-%     maxDist = max(distancePop);
     minDist = min(distancePop);
     if iter==1
         target = ceil(minDist/4);
-%         axis([1 iterSize target minDist]);
     end
     
     for i=1:sizePop
-%         fit(1,i)=(maxDist - distancePop(1,i)+0.000001) / (maxDist-minDist+0.00000001);
           fit(1,i)=distancePop(1,i)-target; % delta value as the fitness
           % the less fitness value means the closest to target
     end
-%     fit=log2(fit);
-    
-%     disp('fitness value of initial population')
-%     disp(fit)
-    % to address error reading of value 0.0000
-%     fit = fit+1;
-%     fprintf('the less fitness value, the closest to optimal solution of current population\n\n');
-%     %fprintf('the fitness value for further is added by 1 to address error interpretation of value 0.0000\n');
-% 
+
 % 4. Tournament
         match = inf(1,sizeTournament);
         winner = inf(1,sizeTournament);
@@ -123,14 +108,10 @@ sizeTournament = 6; % tournament size should not be greater than size of populat
                 randPart = ceil(rand()*sizePop);
                 match(j) = fit(randPart);
             end
-            %fprintf('match %i',i);
-            %disp(match);
             winner(i) = min(match); % min of fitness value
             % the less fitness value, the closest to optimal solution of
             % current population. selected as parents
         end
-%         disp('winner per match');
-%         disp(winner);
 
         % count win
         countWin=containers.Map('KeyType','double','ValueType','int32');
@@ -145,7 +126,6 @@ sizeTournament = 6; % tournament size should not be greater than size of populat
         % sort based on count
         k = keys(countWin);
         v = values(countWin);
-%         disp('count winner')
         countNfit = inf(length(countWin), 2); % 2 here is column count and column fit
         sortCountNfit = inf(length(countWin), 2); % 2 here is column count and column fit
         for i=1:length(countWin)
@@ -154,7 +134,6 @@ sizeTournament = 6; % tournament size should not be greater than size of populat
         end
         sortCountNfit = countNfit;
         sortCountNfit = sortrows(sortCountNfit, -1); % descending to get highest count
-%         disp(countNfit);
          
         % get parents. assumed only 1 pair of parents
         idx=1;
@@ -170,14 +149,10 @@ sizeTournament = 6; % tournament size should not be greater than size of populat
         numParents = sizeWinner-iterParents+1;
         parents = inf(numParents,sizeRow);
         p=inf(1,numParents); % 2 is number of parents
-%         for i=sizeWinner:-1:iterParents % length(countNfit)-1 depends on size of parents
         for i=1:numParents
             p(idx)=sortCountNfit(i,2); % take the fit, fit is in column 2
             idx=idx+1;
         end
-
-%         disp('dist and pop');
-%         disp(keys(distAndPopPair));
 
         % get the chromosome of parents. assumed only 1 pair of parents
         for i=1:numParents
@@ -188,8 +163,6 @@ sizeTournament = 6; % tournament size should not be greater than size of populat
             distKey = unique(distKey, 'stable');
             parents(i,:) = distAndPopPair(distKey);
         end
-%         disp('selected parents');
-%         disp(parents)
      
  % 4. Crossover
     [sizeParents,~] = size(parents);
@@ -219,12 +192,10 @@ sizeTournament = 6; % tournament size should not be greater than size of populat
         
         % steps
         for i=2:length(parent1)
-%             disp(i);
             neighbor = [];
             if length(neighborList(child(i-1))) > 0
                 neighbor = neighborList(child(i-1));
             else
-%                 disp('no');
                 restCollection=[];
                 for x=1:length(neighborList)
                     % here collecting all rest nodes which aren't included
@@ -236,22 +207,15 @@ sizeTournament = 6; % tournament size should not be greater than size of populat
                         end
                     end
                 end
-%                 index=i;
                 restCollection = unique(restCollection, 'stable');
-%                 for z=1:length(restCollection)
                 if length(restCollection)
                     child(i) = restCollection(1);
-%                     disp(child(i));
                     neighborList = updateNeighborList(neighborList, child(i));
                 end
-%                     break;
-%                     index=index+1;
-%                 end
             end
             
             %if the neighbor more than 1
             if length(neighbor) > 1
-%                 disp('>1');
                 n_neighbor=[];
                 for y=1:length(neighbor)
                     n_neighbor(y) = length(neighborList(neighbor(y)));
@@ -270,12 +234,9 @@ sizeTournament = 6; % tournament size should not be greater than size of populat
                 end
                 
                 child(i)=neighbor(idex);
-%                 disp(child(i));
                 neighborList = updateNeighborList(neighborList, child(i));
             elseif length(neighbor) == 1
-%                 disp('1');
                 child(i) = neighbor(1);
-%                 disp(child(i));
                 neighborList = updateNeighborList(neighborList, child(i));
             end
         end
@@ -286,10 +247,6 @@ sizeTournament = 6; % tournament size should not be greater than size of populat
     else
         crossover = 0;
     end
-%     disp('child');
-%     disp(child);
-%     disp('sort child');
-%     disp(sort(child));
     
 %5. Mutation
         %mutation against selected parents to generate child
@@ -320,8 +277,6 @@ sizeTournament = 6; % tournament size should not be greater than size of populat
                 childs(i,[y x]) = childs(i,[x y]);
             end
         end
-        %disp('childs');
-        %disp(childs);
        
 %  6. Offspring
         offspring = [population;childs];
@@ -334,11 +289,9 @@ sizeTournament = 6; % tournament size should not be greater than size of populat
         % to keep the population size remain the same and preventing 'out of memory'
         % remove duplicate path if exist. with unique, it will sort the value
         offspring = unique(offspring, 'rows', 'stable'); 
-        %disp('offspring after deduplication')
-        %disp(offspring)
         [sizeOffspring,~]=size(offspring);
         distNoffspring = inf(sizeOffspring,sizeRow+1);
-%         
+ 
         for j = 1:sizeOffspring
             dist=0;
             for i = 1:sizeRow-1
@@ -353,9 +306,7 @@ sizeTournament = 6; % tournament size should not be greater than size of populat
             % total distance as the key
             distNoffspring(j,:) = [dist offspring(j,:)];
         end
-        %disp('distance of offspring')
-        %disp(distNoffspring);
-% 
+
     %  Calculate the fitness value of each offspring
 %         maxDis = max(distNoffspring(:,1));
 %         minDis = min(distNoffspring(:,1));
@@ -368,7 +319,7 @@ sizeTournament = 6; % tournament size should not be greater than size of populat
         %disp('fitness of offspring')
 %         fitOfofspring = fitOfofspring+1; % for 0.0000 problem
         %disp(fitOfofspring);
-%         
+     
         % average fit
         su=0;
 %         avgFit = inf(1,length(fitOfofspring));
@@ -377,15 +328,13 @@ sizeTournament = 6; % tournament size should not be greater than size of populat
         end
         av = su/length(fitOfofspring);
         avgFit(1,iter) = av;
-% 
+
         % replace the dist with fitness value to be sorted
         fitNoffspring = inf(sizeOffspring,sizeRow+1);
         fitNoffspring = distNoffspring;
         fitNoffspring(:,1) = fitOfofspring;
         sortedOffspring = sortrows(fitNoffspring); % ascending to get the lowest fit
-        %disp('sorted offspring');
-        %disp(sortedOffspring);
-%         
+
     % filter offspring based on the best fitnes as much as initial population size
         sortedOffspring = sortedOffspring(:,2:end); % 2 here is for removing fitness value in column 1
         [sizeSorted, ~] = size(sortedOffspring);
@@ -399,7 +348,6 @@ sizeTournament = 6; % tournament size should not be greater than size of populat
         end
         
         for i=sizeSorted:-1:limitIdx
-%         for i=1:limitIdx
             population(idx,:) = sortedOffspring(idx,:);
             idx=idx+1;
         end
